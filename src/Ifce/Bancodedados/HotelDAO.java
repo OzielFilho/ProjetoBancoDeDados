@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Scanner;
 
 public class HotelDAO {
 	private Connection connection;
@@ -38,20 +39,17 @@ public class HotelDAO {
 		}
 		return false;
 	}
-	public void createReserva() {
-		
-	}
-	
 	public void mostrarQuartos() {
 		try {
 			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from Bedroom where status = livre");
+			ResultSet rs = stmt.executeQuery("select * from bedroom where status_bedroom = 'disponivel'");
 			while(rs.next()) {
-				ResultSet q = stmt.executeQuery("select * from type_bedroom where id_type ="+ rs.getString("id_type"));
-				System.out.println("Quarto numero "+ rs.getInt("id_type"));
+				System.out.print("Quarto numero "+ rs.getInt("number_bedroom"));
+				Statement stm = connection.createStatement();
+				ResultSet q = stm.executeQuery("select * from type_bedroom where id_type ="+ rs.getString("id_type"));
 				if(q.next()) {
-					System.out.print("/tdescrição: " + q.getString("description_reservation"));
-					System.out.print("/tpreço:" + q.getDouble("price"));
+					System.out.print("\t descrição: " + q.getString("description_reservation"));
+					System.out.print("\t preço:" + q.getDouble("price"));
 					System.out.println();
 				}
 			}
@@ -60,9 +58,9 @@ public class HotelDAO {
 		}
 		}
 	
-	public void updateBedroom(int id_type) {
-        String query = "update bedroom set status_bedroom = 'fechado' where id_type = " + id_type;
+	public void updateBedroom(int number_bedroom) {
         try {
+    		String query = "update bedroom set status_bedroom = 'fechado' where number_bedroom = " + number_bedroom;
             Statement stmt = connection.createStatement();
             int reserva = stmt.executeUpdate(query);
             if (reserva == 1) {
@@ -74,14 +72,11 @@ public class HotelDAO {
             e.printStackTrace();
         }
     }
-	public void CheckIn() {
-		
-	}
-	public void CreateReservation(int rg_number, int number_bedroom,String date_Reservation,int qt_days,String date_in) {
-		String query = "insert into Reservation(number_bedroom,rg_number,id_reservation,date_reservation"
-				+ ",qt_days,date_in,status_reservation) values ("+number_bedroom +","+rg_number+"," +1+"," + date_Reservation +
-				","+ qt_days+ "," + date_in+ ","+ "em andamento" +")";
-		
+
+	public void CreateReservation(int rg_number, int number_bedroom,int qt_days) {
+		String query = "insert into Reservation(number_bedroom,rg_number,date_reservation"
+				+ ",qt_days,date_in,status_reservation) values ("+number_bedroom +","+rg_number+","+ "current_timestamp" +
+				","+ qt_days+ "," + "current_timestamp" + ","+ "'em andamento'" +")";
 		try {
 			Statement stmt = connection.createStatement();
 			stmt.executeUpdate(query);
@@ -91,24 +86,21 @@ public class HotelDAO {
 		}
 	}
 	
-	public void CreateLodging(int rg_number, int number_bedroom,LocalDate date_in) {		
+	public void CreateLodging(int rg_number, int number_bedroom) {		
 		String query = "insert into Lodging(rg_number,number_bedroom,date_in"
-				+ ",status_lodging) values ("+rg_number+"," +number_bedroom+"," + date_in +
+				+ ",status_lodging) values ("+rg_number+"," +number_bedroom+"," + "current_timestamp" +
 				","+ "'em andamento'" +")";
-		
 		try {
 			Statement stmt = connection.createStatement();
-			
-			stmt.executeUpdate(query);
-			
+			stmt.executeUpdate(query);	
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
+	
 	
 	
 	public void insertClient(int rg_number,String name,char gender) {
-		
 		String query = "insert into client(rg_number,name,gender) values ("+rg_number +",'"+name+"','" +gender +"')";
 		try {
 			Statement stmt = connection.createStatement();
@@ -121,16 +113,29 @@ public class HotelDAO {
 	}
 	
 	
+	public void CheckIn(int rg_number,int number_bedroom,int qt_days) {
+		updateBedroom(number_bedroom);
+		CreateReservation(rg_number,number_bedroom,qt_days);
+		CreateLodging(rg_number,number_bedroom);
+	}
+	
 	public static void main(String[] args) {
 		HotelDAO dao = new HotelDAO();
-		//dao.insertClient(2514512,"miguel",'m');
-		dao.CreateLodging(256315, 1,LocalDate.now());
-		
-		
-		
+			
 	}
 }
-
+/**
+ * Statement stm = connection.createStatement();
+    		ResultSet rs = stm.executeQuery("select * from bedroom where number_bedroom = "+ number_bedroom);
+    		if(rs.next()) {
+    			if(rs.getString("status_bedroom") == "fechado") {
+    				System.out.println("quarto indisponível, selecione outro");
+    				Scanner s = new Scanner(System.in);
+    				int id = s.nextInt();
+    				updateBedroom(id);
+    			}
+    		}
+ */
 //"insert into bedroom(id_type,number_bedroom,status_bedroom) values "
 //+ "(" + id + "," + number +",'"+ status+ "')";
 
