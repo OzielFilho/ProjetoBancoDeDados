@@ -3,7 +3,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+import java.util.Calendar;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 
 public class HotelDAO {
 	private Connection connection;
@@ -34,6 +38,9 @@ public class HotelDAO {
 		}
 		return false;
 	}
+	public void createReserva() {
+		
+	}
 	
 	public void mostrarQuartos() {
 		try {
@@ -53,9 +60,52 @@ public class HotelDAO {
 		}
 		}
 	
+	public void updateBedroom(int id_type) {
+        String query = "update bedroom set status_bedroom = 'fechado' where id_type = " + id_type;
+        try {
+            Statement stmt = connection.createStatement();
+            int reserva = stmt.executeUpdate(query);
+            if (reserva == 1) {
+                System.out.println("Reserva realizada");
+            } else {
+                System.out.println("Reserva não realizada");
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
 	public void CheckIn() {
 		
 	}
+	public void CreateReservation(int rg_number, int number_bedroom,String date_Reservation,int qt_days,String date_in) {
+		String query = "insert into Reservation(number_bedroom,rg_number,id_reservation,date_reservation"
+				+ ",qt_days,date_in,status_reservation) values ("+number_bedroom +","+rg_number+"," +1+"," + date_Reservation +
+				","+ qt_days+ "," + date_in+ ","+ "em andamento" +")";
+		
+		try {
+			Statement stmt = connection.createStatement();
+			stmt.executeUpdate(query);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void CreateLodging(int rg_number, int number_bedroom,LocalDate date_in) {		
+		String query = "insert into Lodging(rg_number,number_bedroom,date_in"
+				+ ",status_lodging) values ("+rg_number+"," +number_bedroom+"," + date_in +
+				","+ "'em andamento'" +")";
+		
+		try {
+			Statement stmt = connection.createStatement();
+			
+			stmt.executeUpdate(query);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public void insertClient(int rg_number,String name,char gender) {
 		
@@ -74,7 +124,7 @@ public class HotelDAO {
 	public static void main(String[] args) {
 		HotelDAO dao = new HotelDAO();
 		//dao.insertClient(2514512,"miguel",'m');
-		dao.ClientInDatabase(256);
+		dao.CreateLodging(256315, 1,LocalDate.now());
 		
 		
 		
