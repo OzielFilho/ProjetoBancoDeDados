@@ -3,11 +3,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Calendar;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.Date;
 import java.util.Scanner;
 
 public class HotelDAO {
@@ -53,25 +48,73 @@ public class HotelDAO {
 		}
 		return false;
 	}
-	public void mostrarQuartos() {
+	public boolean mostrarQuartos() {
 		try {
 			Statement stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery("select * from bedroom where status_bedroom = 'disponivel'");
-			while(rs.next()) {
-				System.out.print("Quarto numero "+ rs.getInt("number_bedroom"));
-				Statement stm = connection.createStatement();
-				ResultSet q = stm.executeQuery("select * from type_bedroom where id_type ="+ rs.getString("id_type"));
-				if(q.next()) {
-					System.out.print("\t descrição: " + q.getString("description_reservation"));
-					System.out.print("\t preço:" + q.getDouble("price"));
-					System.out.println();
+			if(rs.next()) {
+				System.out.println();
+				System.out.println("Quartos disponíveis:  ");
+				while(rs.next()) {
+					System.out.print("Quarto numero "+ rs.getInt("number_bedroom"));
+					Statement stm = connection.createStatement();
+					ResultSet q = stm.executeQuery("select * from type_bedroom where id_type ="+ rs.getString("id_type"));
+					if(q.next()) {
+						System.out.print("\t descrição: " + q.getString("description_reservation"));
+						System.out.print("\t preço:" + q.getDouble("price"));
+						System.out.println();
+					}
 				}
-				
+				return true;
 			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return false;
 		}
+	public void mostrarReserva(int rg_number) {
+		try {
+			Statement stmt = connection.createStatement();
+			Statement stmt2 = connection.createStatement();
+			ResultSet ativas = stmt.executeQuery("select * from reservation where rg_number = "+ rg_number + " AND status_reservation = 'em andamento'");
+			ResultSet inativas = stmt2.executeQuery("select * from reservation where rg_number = "+ rg_number + " AND status_reservation = 'fechado'");
+				while(ativas.next()) {
+					System.out.print("id da reserva: " + ativas.getString("id_reservation"));
+					System.out.print("\t Quarto numero: "+ ativas.getInt("number_bedroom"));
+					System.out.print("\t data da reserva: " + ativas.getDate("date_reservation"));
+					System.out.print("\t status da reserva: " + ativas.getString("status_reservation"));
+					System.out.println();	
+				
+			}
+				while(inativas.next()) {
+					System.out.print("id da reserva: " + inativas.getString("id_reservation"));
+					System.out.print("\t Quarto numero: "+ inativas.getInt("number_bedroom"));
+					System.out.print("\t data da reserva: " + inativas.getString("date_reservation"));
+					System.out.print("\t status da reserva: " + inativas.getString("status_reservation"));
+					System.out.println();
+				}
+			
+			 
+			 System.out.println();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	public boolean isReservaAtiva(int rg_number) {
+		try {
+			Statement stmt = connection.createStatement();
+			ResultSet ativas = stmt.executeQuery("select * from reservation where rg_number = "+ rg_number + " AND status_reservation = 'em andamento'");
+			if(ativas.next()) {
+				return true;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
 	
 	public void updateBedroom(int number_bedroom) {
         try {
@@ -134,6 +177,11 @@ public class HotelDAO {
 
 		}
 	}
+	public void CheckIn(int rg_number,int number_bedroom,int qt_days) {
+		updateBedroom(number_bedroom);
+		CreateReservation(rg_number,number_bedroom,qt_days);
+		CreateLodging(rg_number,number_bedroom);
+	}
 	
 	public void checkOut(int number_bedroom) {
         String query = "update lodging set status_lodging = 'fechado' where number_bedroom = " + number_bedroom;
@@ -147,7 +195,6 @@ public class HotelDAO {
             int lodging = stmt.executeUpdate(query);
             int reservation = stmt_2.executeUpdate(query_2);
             int bedroom = stmt_3.executeUpdate(query_3);
-
             if (lodging == 1 && reservation == 1 && bedroom  == 1) {
                 System.out.println("Check out Ok");
             } else {
@@ -158,23 +205,112 @@ public class HotelDAO {
         }
     }
 	
-	public void CheckIn(int rg_number,int number_bedroom,int qt_days) {
-		updateBedroom(number_bedroom);
-		CreateReservation(rg_number,number_bedroom,qt_days);
-		CreateLodging(rg_number,number_bedroom);
+	
+	
+	
+	public void Usuario_CheckIn(int rg_usuario) {
+		System.out.println("...");
+		boolean quartos = mostrarQuartos();
+		if(quartos == true) {
+			Scanner resposta_scanner = new Scanner(System.in);
+			System.out.println("Qual quarto você vai querer?(digite o numero do quarto): ");
+			int quarto = resposta_scanner.nextInt();
+			System.out.println("Quantos dias você vai querer passar?: ");
+			resposta_scanner = new Scanner(System.in);
+			int dias = resposta_scanner.nextInt();
+			CheckIn(rg_usuario,quarto,dias);
+		}else {
+			System.out.println("Infelizmente não temos mais quartos disponíveis");
+		}
 	}
 	
 	public static void main(String[] args) {
 		HotelDAO dao = new HotelDAO();
-		System.out.println("BEM VINDO AO HOTEL "
-				+ "\n Digite seu rg: ");
-		Scanner s = new Scanner(System.in);
-		int rg = s.nextInt();
-		boolean resposta = dao.ClientInDatabase(rg);
-		System.out.println("digite a reserva que vc quer fechar");
-		Scanner reserva = new Scanner(System.in);
-		int id = s.nextInt();
-		dao.checkOut(id);
+		//dao.CheckIn(123456,2,5);
+		System.out.println("BEM VINDO AO HOTEL, Digite seu rg: ");
+		Scanner resposta_scanner = new Scanner(System.in);
+		int rg_usuario = resposta_scanner.nextInt();
+		boolean client = dao.ClientInDatabase(rg_usuario);
+		if(client == true) {
+			dao.mostrarReserva(rg_usuario);
+			boolean reserva_ativa = dao.isReservaAtiva(rg_usuario);
+			if(reserva_ativa) {
+				System.out.println("gostaria de abrir uma reserva ou fechar uma existente?(Abrir/fechar)");
+				Scanner resposta_scanner2 = new Scanner(System.in);
+				String resposta = resposta_scanner2.nextLine();
+				System.out.println(resposta);
+				if(resposta == "abrir") {
+					dao.Usuario_CheckIn(rg_usuario);
+				}
+				if(resposta == "fechar") {
+					System.out.println("digite a reserva que vc quer fechar: ");
+					Scanner id_reserva_scanner = new Scanner(System.in);
+					int id_reserva = id_reserva_scanner.nextInt();
+					dao.checkOut(id_reserva);
+				}
+				
+			}else {
+				System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?");
+				String resposta = resposta_scanner.nextLine();
+				if(resposta.toUpperCase() == "SIM") {
+					dao.Usuario_CheckIn(rg_usuario);
+				}
+			}
+		}else{
+			System.out.println("Usuário não encontrado!");
+			System.out.println("se deseja se cadastrar digite seu nome e gênero: ");
+			System.out.println("nome: ");
+			resposta_scanner = new Scanner(System.in);
+			String nome = resposta_scanner.nextLine();
+			System.out.println("genero(M/F): ");
+			resposta_scanner = new Scanner(System.in);
+			String genderLine = resposta_scanner.nextLine();
+			char genero = genderLine.charAt(0);
+			dao.insertClient(rg_usuario,nome,genero);
+			
+			System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?");
+			resposta_scanner = new Scanner(System.in);
+			String resposta = resposta_scanner.nextLine();
+			if(resposta.toUpperCase() == "SIM") {
+				dao.Usuario_CheckIn(rg_usuario);
+				System.out.println("reserva feita com sucesso");
+			}
+		}
+	}
+}
+		
+		/*
+		 * if(client == true) {
+			boolean reserva = dao.mostrarReserva(rg_usuario);
+			if(reserva == true) {
+				System.out.println("gostaria de abrir uma reserva ou fechar uma existente?(Abrir/fechar)");
+				Scanner resposta_scanner = new Scanner(System.in);
+				String resposta = resposta_scanner.nextLine();
+				resposta_scanner.close();
+				if(resposta.toUpperCase() == "ABRIR") {
+					boolean quartos = dao.mostrarQuartos();
+					if(quartos == true) {
+						System.out.println("Qual quarto você vai querer?(digite o numero do quarto): ");
+						Scanner quarto_scanner = new Scanner(System.in);
+						int quarto = quarto_scanner.nextInt();
+						quarto_scanner.close();
+						System.out.println("Quantos dias você vai querer passar?: ");
+						Scanner dias_scanner = new Scanner(System.in);
+						int dias = dias_scanner.nextInt();
+						dao.CheckIn(rg_usuario,quarto,dias);
+					}else {
+						System.out.println("Infelizmente não temos mais quartos disponíveis");
+					}
+				}else if(resposta.toUpperCase() == "fechar") {
+					System.out.println("digite a reserva que vc quer fechar: ");
+					Scanner id_reserva_scanner = new Scanner(System.in);
+					int id_reserva = id_reserva_scanner.nextInt();
+					dao.checkOut(id_reserva);
+				}
+			}
+		}
+		 */
+		
 		/*
 		 * if(resposta == false) {	
 			System.out.println("se deseja se cadastrar digite seu nome e gênero: ");
@@ -200,8 +336,7 @@ public class HotelDAO {
 			
 		 */
 		
-	}
-}
+
 /**
  * Statement stm = connection.createStatement();
     		ResultSet rs = stm.executeQuery("select * from bedroom where number_bedroom = "+ number_bedroom);
