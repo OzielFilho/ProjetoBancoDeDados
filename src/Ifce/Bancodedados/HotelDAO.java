@@ -13,6 +13,7 @@ public class HotelDAO {
 	
 	public boolean ClientInDatabase(int id) {
 		try {
+			
 			Statement stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery("select * from client where rg_number ="+id);
 			if(rs.next()) {
@@ -195,13 +196,14 @@ public class HotelDAO {
             Statement stmt = connection.createStatement();
             Statement stmt_2 = connection.createStatement();
             Statement stmt_3 = connection.createStatement();
+            
             int lodging = stmt.executeUpdate(query);
             int reservation = stmt_2.executeUpdate(query_2);
             int bedroom = stmt_3.executeUpdate(query_3);
-            if (lodging == 1 && reservation == 1 && bedroom  == 1) {
-                System.out.println("Check out feito com sucesso!!!");
-            } else {
+            if (lodging == 0 && reservation == 0 && bedroom  == 0) {
                 System.out.println("Check out invalido");
+            } else {
+            	System.out.println("Check out feito com sucesso!!!");
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -262,7 +264,6 @@ public class HotelDAO {
 				System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?(sim/nao)");
 				resposta_scanner = new Scanner(System.in);
 				String resposta = resposta_scanner.nextLine();
-				System.out.println(resposta);
 				if(resposta.trim().toUpperCase().equals("SIM")) {
 					dao.Usuario_CheckIn(rg_usuario);
 					exit = false;
