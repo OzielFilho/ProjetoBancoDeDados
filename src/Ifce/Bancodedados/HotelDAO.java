@@ -30,9 +30,9 @@ public class HotelDAO {
 			}
 			} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return false;
 		}
-		return false;
+		
 	}
 	public boolean QuartoinDatabase(int id) {
 		Statement stmt;
@@ -226,11 +226,19 @@ public class HotelDAO {
 	
 	public static void main(String[] args) {
 		HotelDAO dao = new HotelDAO();
+		boolean exit = true;
 		//dao.CheckIn(123456,2,5);
 		System.out.println("BEM VINDO AO HOTEL, Digite seu rg: ");
 		Scanner resposta_scanner = new Scanner(System.in);
 		int rg_usuario = resposta_scanner.nextInt();
+		
+		System.out.println(rg_usuario);
+		
 		boolean client = dao.ClientInDatabase(rg_usuario);
+		System.out.println(client);
+		while(exit) {
+			
+		
 		if(client == true) {
 			dao.mostrarReserva(rg_usuario);
 			boolean reserva_ativa = dao.isReservaAtiva(rg_usuario);
@@ -239,25 +247,30 @@ public class HotelDAO {
 				Scanner resposta_scanner2 = new Scanner(System.in);
 				String resposta = resposta_scanner2.nextLine();
 				System.out.println(resposta);
-				if(resposta == "abrir") {
+				resposta_scanner2.close();
+				if(resposta.trim().toUpperCase() == "ABRIR") {
+					System.out.println("sim");
 					dao.Usuario_CheckIn(rg_usuario);
 				}
-				if(resposta == "fechar") {
+				if(resposta.trim().toUpperCase() == "FECHAR") {
 					System.out.println("digite a reserva que vc quer fechar: ");
 					Scanner id_reserva_scanner = new Scanner(System.in);
 					int id_reserva = id_reserva_scanner.nextInt();
+					id_reserva_scanner.close();
 					dao.checkOut(id_reserva);
 				}
 				
 			}else {
-				System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?");
+				System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?(sim/nao)");
+				resposta_scanner = new Scanner(System.in);
 				String resposta = resposta_scanner.nextLine();
-				if(resposta.toUpperCase() == "SIM") {
+				System.out.println(resposta);
+				if(resposta.trim().toUpperCase() == "SIM") {
+					System.out.println("oi");
 					dao.Usuario_CheckIn(rg_usuario);
 				}
 			}
 		}else{
-			System.out.println("Usuário não encontrado!");
 			System.out.println("se deseja se cadastrar digite seu nome e gênero: ");
 			System.out.println("nome: ");
 			resposta_scanner = new Scanner(System.in);
@@ -267,16 +280,20 @@ public class HotelDAO {
 			String genderLine = resposta_scanner.nextLine();
 			char genero = genderLine.charAt(0);
 			dao.insertClient(rg_usuario,nome,genero);
-			
 			System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?");
 			resposta_scanner = new Scanner(System.in);
 			String resposta = resposta_scanner.nextLine();
+			if(resposta.toUpperCase() == "NAO") {
+				exit = false;
+			}
+			resposta_scanner.close();
 			if(resposta.toUpperCase() == "SIM") {
 				dao.Usuario_CheckIn(rg_usuario);
 				System.out.println("reserva feita com sucesso");
 			}
 		}
 	}
+}
 }
 		
 		/*
