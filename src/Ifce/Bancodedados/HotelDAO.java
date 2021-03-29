@@ -48,31 +48,20 @@ public class HotelDAO {
 		}
 		return false;
 	}
-	public boolean mostrarQuartos() {
+	
+	public boolean isReservaAtiva(int rg_number) {
 		try {
 			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from bedroom where status_bedroom = 'disponivel'");
-			if(rs.next()) {
-				System.out.println();
-				System.out.println("Quartos disponíveis:  ");
-				while(rs.next()) {
-					System.out.print("Quarto numero "+ rs.getInt("number_bedroom"));
-					Statement stm = connection.createStatement();
-					ResultSet q = stm.executeQuery("select * from type_bedroom where id_type ="+ rs.getString("id_type"));
-					if(q.next()) {
-						System.out.print("\t descrição: " + q.getString("description_reservation"));
-						System.out.print("\t preço:" + q.getDouble("price"));
-						System.out.println();
-					}
-				}
+			ResultSet ativas = stmt.executeQuery("select * from reservation where rg_number = "+ rg_number + " AND status_reservation = 'em andamento'");
+			if(ativas.next()) {
 				return true;
 			}
-			
 		} catch (SQLException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
-		}
+	}
 	public void mostrarReserva(int rg_number) {
 		try {
 			Statement stmt = connection.createStatement();
@@ -102,19 +91,33 @@ public class HotelDAO {
 		}	
 	}
 	
-	public boolean isReservaAtiva(int rg_number) {
+	public boolean mostrarQuartos() {
 		try {
 			Statement stmt = connection.createStatement();
-			ResultSet ativas = stmt.executeQuery("select * from reservation where rg_number = "+ rg_number + " AND status_reservation = 'em andamento'");
-			if(ativas.next()) {
+			ResultSet rs = stmt.executeQuery("select * from bedroom where status_bedroom = 'disponivel'");
+			if(rs.next()) {
+				System.out.println();
+				System.out.println("Quartos disponíveis:  ");
+				while(rs.next()) {
+					System.out.print("Quarto numero "+ rs.getInt("number_bedroom"));
+					Statement stm = connection.createStatement();
+					ResultSet q = stm.executeQuery("select * from type_bedroom where id_type ="+ rs.getString("id_type"));
+					if(q.next()) {
+						System.out.print("\t descrição: " + q.getString("description_reservation"));
+						System.out.print("\t preço:" + q.getDouble("price"));
+						System.out.println();
+					}
+				}
 				return true;
 			}
+			
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
-	}
+		} 
+	
+	
 	
 	public void updateBedroom(int number_bedroom) {
         try {
