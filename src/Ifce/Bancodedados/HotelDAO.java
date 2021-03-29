@@ -196,7 +196,7 @@ public class HotelDAO {
             int reservation = stmt_2.executeUpdate(query_2);
             int bedroom = stmt_3.executeUpdate(query_3);
             if (lodging == 1 && reservation == 1 && bedroom  == 1) {
-                System.out.println("Check out Ok");
+                System.out.println("Check out feito com sucesso!!!");
             } else {
                 System.out.println("Check out invalido");
             }
@@ -209,11 +209,10 @@ public class HotelDAO {
 	
 	
 	public void Usuario_CheckIn(int rg_usuario) {
-		System.out.println("...");
 		boolean quartos = mostrarQuartos();
-		if(quartos == true) {
-			Scanner resposta_scanner = new Scanner(System.in);
+		if(quartos) {
 			System.out.println("Qual quarto você vai querer?(digite o numero do quarto): ");
+			Scanner resposta_scanner = new Scanner(System.in);
 			int quarto = resposta_scanner.nextInt();
 			System.out.println("Quantos dias você vai querer passar?: ");
 			resposta_scanner = new Scanner(System.in);
@@ -231,11 +230,8 @@ public class HotelDAO {
 		System.out.println("BEM VINDO AO HOTEL, Digite seu rg: ");
 		Scanner resposta_scanner = new Scanner(System.in);
 		int rg_usuario = resposta_scanner.nextInt();
-		
-		System.out.println(rg_usuario);
-		
+
 		boolean client = dao.ClientInDatabase(rg_usuario);
-		System.out.println(client);
 		while(exit) {
 			
 		
@@ -243,21 +239,20 @@ public class HotelDAO {
 			dao.mostrarReserva(rg_usuario);
 			boolean reserva_ativa = dao.isReservaAtiva(rg_usuario);
 			if(reserva_ativa) {
-				System.out.println("gostaria de abrir uma reserva ou fechar uma existente?(Abrir/fechar)");
-				Scanner resposta_scanner2 = new Scanner(System.in);
-				String resposta = resposta_scanner2.nextLine();
-				System.out.println(resposta);
-				resposta_scanner2.close();
-				if(resposta.trim().toUpperCase() == "ABRIR") {
-					System.out.println("sim");
+				System.out.println("gostaria de abrir uma reserva ou fechar uma existente?(ABRIR/FECHAR)");
+				resposta_scanner = new Scanner(System.in);
+				String resposta = resposta_scanner.next();
+				if(resposta.trim().toUpperCase().equals("ABRIR")) {
 					dao.Usuario_CheckIn(rg_usuario);
+					exit = false;
 				}
-				if(resposta.trim().toUpperCase() == "FECHAR") {
-					System.out.println("digite a reserva que vc quer fechar: ");
-					Scanner id_reserva_scanner = new Scanner(System.in);
-					int id_reserva = id_reserva_scanner.nextInt();
-					id_reserva_scanner.close();
+				if(resposta.trim().toUpperCase().equals("FECHAR")) {
+					System.out.println("digite o numero do quarto que você quer fechar: ");
+					Scanner teste = new Scanner(System.in);
+					int id_reserva = teste.nextInt();
+					teste.close();
 					dao.checkOut(id_reserva);
+					exit = false;
 				}
 				
 			}else {
@@ -265,31 +260,34 @@ public class HotelDAO {
 				resposta_scanner = new Scanner(System.in);
 				String resposta = resposta_scanner.nextLine();
 				System.out.println(resposta);
-				if(resposta.trim().toUpperCase() == "SIM") {
-					System.out.println("oi");
+				if(resposta.trim().toUpperCase().equals("SIM")) {
 					dao.Usuario_CheckIn(rg_usuario);
+					exit = false;
+				}else {
+					exit = false;
 				}
 			}
 		}else{
 			System.out.println("se deseja se cadastrar digite seu nome e gênero: ");
 			System.out.println("nome: ");
+			
 			resposta_scanner = new Scanner(System.in);
 			String nome = resposta_scanner.nextLine();
 			System.out.println("genero(M/F): ");
+			
 			resposta_scanner = new Scanner(System.in);
 			String genderLine = resposta_scanner.nextLine();
 			char genero = genderLine.charAt(0);
 			dao.insertClient(rg_usuario,nome,genero);
-			System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?");
+			System.out.println("Você não tem reservas ativas, gostaria de fazer uma reserva?(SIM/NAO)");
 			resposta_scanner = new Scanner(System.in);
 			String resposta = resposta_scanner.nextLine();
-			if(resposta.toUpperCase() == "NAO") {
+			if(resposta.trim().toUpperCase().equals("SIM")) {
+				dao.Usuario_CheckIn(rg_usuario);
 				exit = false;
 			}
-			resposta_scanner.close();
-			if(resposta.toUpperCase() == "SIM") {
-				dao.Usuario_CheckIn(rg_usuario);
-				System.out.println("reserva feita com sucesso");
+			if(resposta.trim().toUpperCase().equals("NAO")) {
+				exit = false;
 			}
 		}
 	}
